@@ -37,10 +37,10 @@ before_script:
 #  - rm -rf springboard_build/sites/all/modules/springboard
 #  - ln -s $(readlink -e $(cd -)) springboard_build/sites/all/modules/springboard
 
-  - php -d sendmail_path=`which true`
+#  - php -d sendmail_path=`which true`
   - cd springboard_build
   - drush -y site-install sbsetup install_configure_form.update_status_module='array(FALSE,FALSE)' --db-url=mysql://root:@127.0.0.1/drupal
-  - drush en springboard_tests -y
+  - drush en simpletest -y
 
   # start a web server on port 8080, run in the background; wait for initialization
   - drush runserver 127.0.0.1:8080 &
