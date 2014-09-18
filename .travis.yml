@@ -33,8 +33,9 @@ before_script:
   - drush make build/springboard-mtsb.make springboard_build
 
   - chmod -R 777 springboard_build/sites/default
-  - rm -rf springboard_build/sites/all/modules/springboard
-  - ln -s $(readlink -e $(cd -)) springboard_build/sites/all/modules/springboard
+  # Skip this part until we have this in the modules repo.
+#  - rm -rf springboard_build/sites/all/modules/springboard
+#  - ln -s $(readlink -e $(cd -)) springboard_build/sites/all/modules/springboard
 
   - php -d sendmail_path=`which true` ~/.composer/vendor/bin/drush.php --yes site-install sbsetup install_configure_form.update_status_module='array(FALSE,FALSE)' --db-url=mysql://root:@127.0.0.1/drupal
 
