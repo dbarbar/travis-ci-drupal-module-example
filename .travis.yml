@@ -4,7 +4,7 @@ php:
   - 5.3
 
 mysql:
-  database: travis_ci_drupal_module_example_test
+  database: drupal
   username: root
   encoding: utf8
 
@@ -20,23 +20,29 @@ install:
   - export PATH="$HOME/.composer/vendor/bin:$PATH"
 
   # install drush globally
-  - composer global require drush/drush:6.*
+  - composer global require drush/drush:6.4.0
 
 before_script:
   # navigate out of module directory to prevent blown stack by recursive module lookup
   - cd ../..
 
   # create new site, stubbing sendmail path with true to prevent delivery errors and manually resolving drush path
-  - mysql -e 'create database travis_ci_drupal_module_example_test'
-  - php -d sendmail_path=`which true` ~/.composer/vendor/bin/drush.php --yes core-quick-drupal --profile=testing --no-server --db-url=mysql://root:@127.0.0.1/travis_ci_drupal_module_example_test --enable=simpletest travis_ci_drupal_module_example_test
+  - mysql -e 'create database drupal'
 
-  # reference and enable travis_ci_drupal_module_example in build site
-  - ln -s $(readlink -e $(cd -)) travis_ci_drupal_module_example_test/drupal/sites/all/modules/travis_ci_drupal_module_example
-  - cd travis_ci_drupal_module_example_test/drupal
-  - drush --yes pm-enable travis_ci_drupal_module_example
+  - git clone https://github.com/JacksonRiver/Springboard-Build.git build
+  - drush make build/springboard-mtsb.make springboard_build
+
+  - chmod -R 777 springboard_build/sites/default
+  - rm -rf springboard_build/sites/all/modules/springboard
+  - ln -s $(readlink -e $(cd -)) springboard_build/sites/all/modules/springboard
+
+  - php -d sendmail_path=`which true` ~/.composer/vendor/bin/drush.php --yes site-install sbsetup install_configure_form.update_status_module='array(FALSE,FALSE)' --db-url=mysql://root:@127.0.0.1/drupal
+
+  - cd springboard_build
 
   # start a web server on port 8080, run in the background; wait for initialization
   - drush runserver 127.0.0.1:8080 &
   - until netstat -an 2>/dev/null | grep '8080.*LISTEN'; do true; done
+  - drush en springboard_tests -y
 
-script: drush test-run 'Travis-CI Drupal Module Example' --uri=http://127.0.0.1:8080
+script: drush test-run 'EmailWrappersTestCase' --uri=http://127.0.0.1:8080
